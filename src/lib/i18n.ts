@@ -36,7 +36,7 @@ export const translations = {
         completeTrip: '完成行程',
         addLocation: '添加地点',
         searchLocationPlaceholder: '搜索并添加目的地...',
-        day: '天',
+        day: 'Day',
         weather: '天气',
         clickToModify: '点击修改',
         noActivities: '暂无活动安排',
