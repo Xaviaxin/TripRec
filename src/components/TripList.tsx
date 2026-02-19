@@ -18,7 +18,10 @@ interface TripListProps {
     trips: Trip[];
 }
 
+import { useI18n } from './I18nContext';
+
 export function TripList({ trips }: TripListProps) {
+    const { t } = useI18n();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | TripStatus>('all');
     const [showMap, setShowMap] = useState(false);
@@ -43,24 +46,17 @@ export function TripList({ trips }: TripListProps) {
     const handleMerge = () => {
         if (selectedTrips.length < 2) return;
         const tripsToMerge = trips.filter(t => selectedTrips.includes(t.id));
-        const newTitle = prompt("请输入合并后的旅行标题", tripsToMerge[0].title + " Merged");
+        const newTitle = prompt(t('mergePrompt'), tripsToMerge[0].title + " Merged");
         if (newTitle) {
-            // Here we would call the merge logic
-            try {
-                // We need to import mergeTrips function properly, assumed in lib/merge.ts
-                // In a real component we would probably call a parent handler or context to update state
-                alert("Merge functionality logic is ready but requires state update mechanism. (Implemented in logic)");
-            } catch (e) {
-                alert("Merge failed");
-            }
+            alert(t('merging'));
         }
     };
 
     const getStatusLabel = (status: TripStatus) => {
         switch (status) {
-            case 'inspiration': return { label: '灵感', icon: <Lightbulb size={14} />, color: 'var(--color-accent)' };
-            case 'upcoming': return { label: '待出行', icon: <Plane size={14} />, color: 'var(--color-primary)' };
-            case 'completed': return { label: '已出行', icon: <CheckCircle size={14} />, color: 'var(--color-success)' };
+            case 'inspiration': return { label: t('inspiration'), icon: <Lightbulb size={14} />, color: 'var(--color-accent)' };
+            case 'upcoming': return { label: t('upcoming'), icon: <Plane size={14} />, color: 'var(--color-primary)' };
+            case 'completed': return { label: t('completed'), icon: <CheckCircle size={14} />, color: 'var(--color-success)' };
         }
     };
 
@@ -69,10 +65,10 @@ export function TripList({ trips }: TripListProps) {
             <div style={{ marginBottom: '2rem' }}>
                 {/* Status Tabs - Primary focus */}
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                    <Button variant={statusFilter === 'all' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('all')}>全部</Button>
-                    <Button variant={statusFilter === 'inspiration' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('inspiration')}>灵感</Button>
-                    <Button variant={statusFilter === 'upcoming' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('upcoming')}>待出行</Button>
-                    <Button variant={statusFilter === 'completed' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('completed')}>已出行</Button>
+                    <Button variant={statusFilter === 'all' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('all')}>{t('all')}</Button>
+                    <Button variant={statusFilter === 'inspiration' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('inspiration')}>{t('inspiration')}</Button>
+                    <Button variant={statusFilter === 'upcoming' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('upcoming')}>{t('upcoming')}</Button>
+                    <Button variant={statusFilter === 'completed' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('completed')}>{t('completed')}</Button>
                 </div>
 
                 {/* Secondary Controls: Search and Map Toggle */}
@@ -80,7 +76,7 @@ export function TripList({ trips }: TripListProps) {
                     <div style={{ flex: 1, position: 'relative' }}>
                         <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-primary)', zIndex: 1 }} />
                         <Input
-                            placeholder="搜索目的地或标题..."
+                            placeholder={t('searchPlaceholder')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             style={{
@@ -94,7 +90,7 @@ export function TripList({ trips }: TripListProps) {
                         />
                     </div>
                     <Button variant="secondary" onClick={() => setShowMap(!showMap)}>
-                        {showMap ? '隐藏地图' : '地图'}
+                        {showMap ? t('hideMap') : t('showMap')}
                     </Button>
                 </div>
 
@@ -107,9 +103,9 @@ export function TripList({ trips }: TripListProps) {
 
             {filteredTrips.length === 0 ? (
                 <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-                    <p className="subtitle" style={{ marginBottom: '1.5rem' }}>没有找到相关行程</p>
+                    <p className="subtitle" style={{ marginBottom: '1.5rem' }}>{t('noTripsFound')}</p>
                     <Link href="/trips/new">
-                        <Button>创建新行程</Button>
+                        <Button>{t('createFirstTrip')}</Button>
                     </Link>
                 </div>
             ) : (
@@ -124,13 +120,13 @@ export function TripList({ trips }: TripListProps) {
                                             {statusInfo.icon} {statusInfo.label}
                                         </span>
                                         <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                            <Clock size={12} /> {trip.days.length} 天
+                                            <Clock size={12} /> {trip.days.length} {t('days')}
                                         </span>
                                     </div>
                                     <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                         <MapPin size={14} className="text-primary" />
                                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {trip.destination || '未设置目的地'}
+                                            {trip.destination || t('setDestination')}
                                         </span>
                                     </div>
                                 </div>
@@ -138,7 +134,7 @@ export function TripList({ trips }: TripListProps) {
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.title}</h3>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                                         <Calendar size={14} />
-                                        <span>{trip.startDate ? new Date(trip.startDate).toLocaleDateString() : '日期未定'}</span>
+                                        <span>{trip.startDate ? new Date(trip.startDate).toLocaleDateString() : t('dateNotSet')}</span>
                                     </div>
                                 </div>
                             </Link>

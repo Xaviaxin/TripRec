@@ -8,10 +8,13 @@ import { getTrips } from '@/lib/storage';
 import { Trip } from '@/lib/types';
 import { useAuth } from '@/components/AuthContext';
 import { loginWithGoogle, logout, getCloudTrips, syncTripToCloud } from '@/lib/firebaseUtils';
-import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { LogIn, User as UserIcon } from 'lucide-react';
+import { useI18n } from '@/components/I18nContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -53,38 +56,51 @@ export default function Home() {
     }
   }, [user, mounted, authLoading]);
 
-  if (!mounted || authLoading) return <div className="container" style={{ padding: '2rem' }}>加载中...</div>;
+  if (!mounted || authLoading) return <div className="container" style={{ padding: '2rem' }}>{t('loading')}</div>;
 
   return (
     <main className="container" style={{ padding: '2rem 1rem' }}>
       <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="title" style={{ margin: 0, color: 'var(--color-primary)' }}>TripRec 旅行轨迹</h1>
-          <p className="subtitle">走过的路和尚未踏足的远方</p>
-          {syncing && <p style={{ fontSize: '0.8rem', color: 'var(--color-primary)' }}>同步数据中...</p>}
+          <h1 className="title" style={{ margin: 0, color: 'var(--color-primary)' }}>{t('appName')}</h1>
+          <p className="subtitle">{t('appSubtitle')}</p>
+          {syncing && <p style={{ fontSize: '0.8rem', color: 'var(--color-primary)' }}>{t('syncing')}</p>}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--color-surface)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              background: 'var(--color-surface)',
+              padding: '0 1rem',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+              height: '42px'
+            }}>
               {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || ''} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                <img src={user.photoURL} alt={user.displayName || ''} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
               ) : (
-                <UserIcon size={20} />
+                <UserIcon size={16} />
               )}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user.displayName || '旅行者'}</span>
-                <button onClick={logout} style={{ fontSize: '0.75rem', color: 'var(--color-danger)', textAlign: 'left', padding: 0 }}>登出</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user.displayName || t('visitor')}</span>
+                <button onClick={logout} style={{ fontSize: '0.75rem', color: 'var(--color-danger)', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}>{t('logout')}</button>
               </div>
             </div>
           ) : (
-            <Button variant="secondary" onClick={loginWithGoogle}>
-              <LogIn size={18} /> Google 登录同步
+            <Button variant="secondary" onClick={loginWithGoogle} style={{ height: '42px', padding: '0 1rem' }}>
+              <LogIn size={18} /> {t('loginGoogle')}
             </Button>
           )}
 
+          <div style={{ height: '42px', display: 'flex', alignItems: 'center' }}>
+            <LanguageSwitcher />
+          </div>
+
           <Link href="/trips/new">
-            <Button>+ 新建行程</Button>
+            <Button style={{ height: '42px', padding: '0 1.25rem' }}>{t('newTrip')}</Button>
           </Link>
         </div>
       </header>

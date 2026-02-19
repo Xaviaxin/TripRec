@@ -4,19 +4,21 @@ import { useState } from 'react';
 import { Input } from './ui/Input';
 import { MapPin, Sun, X } from 'lucide-react';
 import { searchLocation } from '@/lib/geocoding';
+import { useI18n } from './I18nContext';
 
 interface DayItemProps {
     day: DayPlan;
+    dayIndex: number;
     isCompletedMode: boolean;
     onAddActivity: (dayId: string, activity: Activity) => void;
     onRemoveActivity: (dayId: string, activityId: string) => void;
     onUpdateDay: (dayId: string, updates: Partial<DayPlan>) => void;
 }
 
-export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity, onUpdateDay }: DayItemProps) {
+export function DayItem({ day, dayIndex, isCompletedMode, onAddActivity, onRemoveActivity, onUpdateDay }: DayItemProps) {
+    const { t } = useI18n();
     const [isAdding, setIsAdding] = useState(false);
     const [newActivity, setNewActivity] = useState('');
-    // const [newTime, setNewTime] = useState(''); // Removed
 
     // Weather Edit
     const [isEditingWeather, setIsEditingWeather] = useState(false);
@@ -32,10 +34,8 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
         onAddActivity(day.id, {
             id: crypto.randomUUID(),
             description: newActivity,
-            // time: newTime, // Removed
         });
         setNewActivity('');
-        // setNewTime('');
         setIsAdding(false);
     };
 
@@ -84,20 +84,19 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>第 {day.dayIndex} 天</h3>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('day')} {dayIndex + 1}</h3>
                         {day.date && (
                             <span style={{ color: 'var(--color-text-muted)' }}>{new Date(day.date).toLocaleDateString()}</span>
                         )}
                     </div>
 
-                    {/* Multiple Day Locations Display/Edit */}
                     <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
                         <MapPin size={16} color="var(--color-primary)" />
 
                         {(day.locations || (day.location ? [day.location] : [])).map(loc => (
-                            <span key={loc.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: 'var(--color-accent-light)', color: 'var(--color-accent)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', fontSize: '0.8rem' }}>
+                            <span key={loc.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--color-primary)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', fontSize: '0.8rem' }}>
                                 {loc.name}
-                                <button onClick={() => removeLocation(loc.id)} style={{ cursor: 'pointer', display: 'flex', color: 'inherit' }}>
+                                <button onClick={() => removeLocation(loc.id)} style={{ cursor: 'pointer', display: 'flex', color: 'inherit', border: 'none', background: 'none', padding: 0 }}>
                                     <X size={12} />
                                 </button>
                             </span>
@@ -108,10 +107,10 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
                                 <input
                                     autoFocus
                                     className="input"
-                                    style={{ padding: '0.25rem', fontSize: '0.9rem' }}
+                                    style={{ padding: '0.25rem', fontSize: '0.9rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
                                     value={locSearch}
                                     onChange={e => handleSearchLoc(e.target.value)}
-                                    placeholder="搜索地点..."
+                                    placeholder={t('searchPlaceholder')}
                                 />
                                 {locResults.length > 0 && (
                                     <div style={{ position: 'absolute', top: '100%', left: 0, width: '200px', background: 'white', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', zIndex: 10, boxShadow: 'var(--shadow-md)' }}>
@@ -128,7 +127,7 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
                                 onClick={() => setEditingLoc(true)}
                                 style={{ color: 'var(--color-primary)', fontSize: '0.85rem', cursor: 'pointer', border: 'none', background: 'none', padding: 0, textDecoration: 'underline' }}
                             >
-                                + 添加地点
+                                + {t('addLocation')}
                             </button>
                         )}
                     </div>
@@ -146,14 +145,14 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
                                 autoFocus
                                 value={weatherInput}
                                 onChange={e => setWeatherInput(e.target.value)}
-                                style={{ width: '150px', padding: '0.25rem' }}
-                                placeholder="输入天气..."
+                                style={{ width: '150px', padding: '0.25rem', marginBottom: 0 }}
+                                placeholder={t('weather')}
                             />
-                            <Button size="sm" onClick={saveWeather}>确认</Button>
+                            <Button size="sm" onClick={saveWeather}>{t('confirm')}</Button>
                         </div>
                     ) : (
                         <span onClick={startEditWeather} style={{ cursor: 'pointer', borderBottom: '1px dashed var(--color-border)' }}>
-                            天气: {day.weather || '点击修改'}
+                            {t('weather')}: {day.weather || t('clickToModify')}
                         </span>
                     )}
                 </div>
@@ -162,16 +161,16 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {day.activities.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.9rem' }}>暂无活动安排</p>
+                    <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.9rem' }}>{t('noActivities')}</p>
                 ) : (
                     day.activities.map((act) => (
-                        <div key={act.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem', background: 'var(--color-background)', borderRadius: 'var(--radius-sm)' }}>
+                        <div key={act.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem', background: 'var(--color-surface)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
                             <div style={{ flex: 1 }}>
-                                <div>{act.description}</div>
+                                <div style={{ fontSize: '0.95rem' }}>{act.description}</div>
                             </div>
                             <button
                                 onClick={() => onRemoveActivity(day.id, act.id)}
-                                style={{ color: 'var(--color-text-muted)', fontSize: '1.25rem', lineHeight: 1 }}
+                                style={{ color: 'var(--color-text-muted)', fontSize: '1.25rem', lineHeight: 1, border: 'none', background: 'none', cursor: 'pointer' }}
                                 aria-label="Remove activity"
                             >
                                 ×
@@ -183,28 +182,21 @@ export function DayItem({ day, isCompletedMode, onAddActivity, onRemoveActivity,
 
             <div style={{ marginTop: '1rem' }}>
                 {!isAdding ? (
-                    <Button variant="secondary" size="sm" onClick={() => setIsAdding(true)} style={{ width: '100%' }}>+ 添加活动</Button>
+                    <Button variant="secondary" size="sm" onClick={() => setIsAdding(true)} style={{ width: '100%', fontSize: '0.85rem' }}>+ {t('addActivity')}</Button>
                 ) : (
-                    <form onSubmit={handleAdd} style={{ marginTop: '0.5rem', background: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            {/* <Input
-                                type="time"
-                                value={newTime}
-                                onChange={e => setNewTime(e.target.value)}
-                                style={{ width: 'auto' }}
-                            /> */
-                                /* Removed time input */
-                            }
+                    <form onSubmit={handleAdd} style={{ marginTop: '0.5rem', background: 'var(--color-surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                        <div style={{ marginBottom: '0.5rem' }}>
                             <Input
-                                placeholder="活动描述"
+                                placeholder={t('activityDescription')}
                                 value={newActivity}
                                 onChange={e => setNewActivity(e.target.value)}
                                 required
+                                style={{ marginBottom: 0 }}
                             />
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                            <Button type="button" variant="secondary" size="sm" onClick={() => setIsAdding(false)}>取消</Button>
-                            <Button type="submit" size="sm">添加</Button>
+                            <Button type="button" variant="secondary" size="sm" onClick={() => setIsAdding(false)}>{t('cancel')}</Button>
+                            <Button type="submit" size="sm">{t('confirm')}</Button>
                         </div>
                     </form>
                 )}

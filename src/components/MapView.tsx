@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Trip } from '@/lib/types';
 import { useEffect, useState } from 'react';
+import { useI18n } from './I18nContext';
 
 // Use CircleMarker for easy coloring based on status
 // Colors: Inspiration (Accent/Orange), Upcoming (Primary/Blue), Completed (Success/Green)
@@ -15,12 +16,13 @@ interface MapViewProps {
 
 export default function MapView({ trips, activeTrip }: MapViewProps) {
     const [isClient, setIsClient] = useState(false);
+    const { t } = useI18n();
 
     useEffect(() => {
         setIsClient(true);
     }, []);
 
-    if (!isClient) return <div style={{ height: '400px', background: '#f0f0f0' }}>加载地图中...</div>;
+    if (!isClient) return <div style={{ height: '400px', background: '#f0f0f0' }}>{t('loadingMap')}</div>;
 
     // Center map logic
     // Priority: Active Trip first location -> First Trip -> Default
@@ -74,7 +76,7 @@ export default function MapView({ trips, activeTrip }: MapViewProps) {
                                 >
                                     <Popup>
                                         <strong>{trip.title}</strong><br />
-                                        目的地: {loc.name}
+                                        {t('destination')}: {loc.name}
                                     </Popup>
                                 </CircleMarker>
                             ))}
@@ -99,7 +101,7 @@ export default function MapView({ trips, activeTrip }: MapViewProps) {
                                 }}
                             >
                                 <Popup>
-                                    <strong>行程目的地: {loc.name}</strong>
+                                    <strong>{t('tripDestination')}: {loc.name}</strong>
                                 </Popup>
                             </CircleMarker>
                         ))}
@@ -119,7 +121,7 @@ export default function MapView({ trips, activeTrip }: MapViewProps) {
                                     }}
                                 >
                                     <Popup>
-                                        <strong>第 {day.dayIndex} 天</strong><br />
+                                        <strong>{t('day')} {day.dayIndex}</strong><br />
                                         {loc.name}
                                     </Popup>
                                 </CircleMarker>
