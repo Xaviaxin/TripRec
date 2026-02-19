@@ -38,7 +38,7 @@ export function CreateTripForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const numDays = status === 'inspiration' ? estimatedDays :
+        const numDays = status === 'inspiration' ? 1 :
             (startDate && endDate ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : estimatedDays);
 
         const days: DayPlan[] = Array.from({ length: numDays }, (_, i) => ({
@@ -134,46 +134,100 @@ export function CreateTripForm() {
             )}
 
             {status === 'inspiration' ? (
-                <>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>{t('notesOptional')}</label>
-                        <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder={t('notesPlaceholder')}
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                borderRadius: 'var(--radius-md)',
-                                border: '1px solid var(--color-border)',
-                                minHeight: '100px',
-                                fontFamily: 'inherit'
-                            }}
-                        />
-                    </div>
-                    <Input
-                        label={t('estimatedDays')}
-                        type="number"
-                        min={1}
-                        value={estimatedDays}
-                        onChange={(e) => setEstimatedDays(parseInt(e.target.value))}
-                    />
-                </>
-            ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <Input
-                        label={t('travelDates')}
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                    <Input
-                        label=" "
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>{t('notesOptional')}</label>
+                    <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder={t('notesPlaceholder')}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border)',
+                            minHeight: '100px',
+                            fontFamily: 'inherit'
+                        }}
                     />
                 </div>
+            ) : (
+                <>
+                    {status !== 'completed' && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: '#f8fafc', padding: '0.25rem', borderRadius: 'var(--radius-md)' }}>
+                            <button
+                                type="button"
+                                onClick={() => { if (!startDate) setStartDate(new Date().toISOString().split('T')[0]); }}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.4rem',
+                                    fontSize: '0.8rem',
+                                    borderRadius: 'var(--radius-sm)',
+                                    background: (startDate || endDate) ? 'white' : 'transparent',
+                                    color: (startDate || endDate) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    boxShadow: (startDate || endDate) ? 'var(--shadow-sm)' : 'none',
+                                    border: 'none',
+                                    fontWeight: (startDate || endDate) ? 600 : 400
+                                }}
+                            >
+                                {t('travelDates')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setStartDate(''); setEndDate(''); }}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.4rem',
+                                    fontSize: '0.8rem',
+                                    borderRadius: 'var(--radius-sm)',
+                                    background: (!startDate && !endDate) ? 'white' : 'transparent',
+                                    color: (!startDate && !endDate) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    boxShadow: (!startDate && !endDate) ? 'var(--shadow-sm)' : 'none',
+                                    border: 'none',
+                                    fontWeight: (!startDate && !endDate) ? 600 : 400
+                                }}
+                            >
+                                {t('estimatedDays')}
+                            </button>
+                        </div>
+                    )}
+
+                    {(status === 'completed' || startDate || endDate) ? (
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1 }}>
+                                <Input
+                                    label={t('travelDates')}
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <Input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ flex: 1 }}>
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        value={estimatedDays}
+                                        onChange={(e) => setEstimatedDays(parseInt(e.target.value) || 1)}
+                                        style={{ marginBottom: 0, padding: '0.75rem' }}
+                                    />
+                                </div>
+                                <span style={{ color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '1rem' }}>{t('days')}</span>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>

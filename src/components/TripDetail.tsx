@@ -32,6 +32,9 @@ export function TripDetail({ id }: { id: string }) {
     const [tripLocations, setTripLocations] = useState<Location[]>([]);
     const [destQuery, setDestQuery] = useState('');
     const [destResults, setDestResults] = useState<Location[]>([]);
+    const [editStartDate, setEditStartDate] = useState('');
+    const [editEndDate, setEditEndDate] = useState('');
+    const [editDaysCount, setEditDaysCount] = useState(0);
 
     useEffect(() => {
         const loadData = async () => {
@@ -50,6 +53,9 @@ export function TripDetail({ id }: { id: string }) {
                 } else {
                     setTrip(loadedTrip);
                     setEditTitle(loadedTrip.title);
+                    setEditStartDate(loadedTrip.startDate || '');
+                    setEditEndDate(loadedTrip.endDate || '');
+                    setEditDaysCount(loadedTrip.days.length);
                     setTripLocations(loadedTrip.locations || (loadedTrip.destinationLocation ? [loadedTrip.destinationLocation] : []));
                     setNotFound(false);
                 }
@@ -148,12 +154,39 @@ export function TripDetail({ id }: { id: string }) {
         if (!trip) return;
         const destString = tripLocations.map(l => l.name).join(' & ');
 
+        let newDays = [...trip.days];
+
+        // 1. Adjust number of days
+        if (editDaysCount > newDays.length) {
+            const daysToAdd = editDaysCount - newDays.length;
+            const extraDays: DayPlan[] = Array.from({ length: daysToAdd }, (_, i) => ({
+                id: Math.random().toString(36).substr(2, 9),
+                dayIndex: newDays.length + i + 1,
+                activities: [],
+                locations: []
+            }));
+            newDays = [...newDays, ...extraDays];
+        } else if (editDaysCount < newDays.length) {
+            newDays = newDays.slice(0, editDaysCount);
+        }
+
+        // 2. Adjust dates
+        const startDateObj = editStartDate ? new Date(editStartDate) : null;
+        newDays = newDays.map((day, idx) => ({
+            ...day,
+            date: startDateObj ? new Date(startDateObj.getTime() + idx * 24 * 60 * 60 * 1000).toISOString() : undefined,
+            dayIndex: idx + 1
+        }));
+
         const updatedTrip: Trip = {
             ...trip,
             title: editTitle,
+            startDate: editStartDate || undefined,
+            endDate: editEndDate || undefined,
             destination: destString,
             locations: tripLocations,
-            destinationLocation: tripLocations.length > 0 ? tripLocations[0] : undefined
+            destinationLocation: tripLocations.length > 0 ? tripLocations[0] : undefined,
+            days: newDays
         };
         setTrip(updatedTrip);
         saveTrip(updatedTrip);
@@ -269,6 +302,29 @@ export function TripDetail({ id }: { id: string }) {
                                             ))}
                                         </div>
                                     )}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Input
+                                            label={t('departureDate')}
+                                            type="date"
+                                            value={editStartDate}
+                                            onChange={e => setEditStartDate(e.target.value)}
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                value={editDaysCount}
+                                                onChange={e => setEditDaysCount(parseInt(e.target.value) || 1)}
+                                                style={{ marginBottom: 0, flex: 1, padding: '0.75rem' }}
+                                            />
+                                            <span style={{ color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '1rem' }}>{t('days')}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
                                     <Button onClick={saveHeaderChanges}>{t('save')}</Button>
